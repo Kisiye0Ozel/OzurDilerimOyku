@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Beni Affet Lütfen... 🥺</title>
+    <style>
+        :root {
+            --ana-pembe: #ff4d6d;
+            --acik-pembe: #fff0f3;
+            --cerceve-rengi: #ffccd5;
+            --balon-bg: #ffffff;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: var(--acik-pembe);
+            font-family: 'Segoe UI', sans-serif;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        /* Uçuşan Kalpler */
+        #heartBg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .floating-heart {
+            position: absolute;
+            color: rgba(255, 77, 109, 0.3);
+            font-size: 24px;
+            animation: ucma 5s linear forwards;
+        }
+
+        @keyframes ucma {
+            0% { transform: translateY(110vh) scale(0.5); opacity: 1; }
+            100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+        }
+
+        .main-stage {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 400px;
+            z-index: 100;
+        }
+
+        /* Karakter Bölümü */
+        .character-box {
+            position: relative;
+            margin-bottom: 10px;
+            animation: havadaDurma 3s ease-in-out infinite;
+        }
+
+        @keyframes havadaDurma {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .character-box img {
+            width: 200px; /* Görsel boyutunu buradan ayarlayabilirsin */
+            height: auto;
+            filter: drop-shadow(0 10px 20px rgba(255, 77, 109, 0.3));
+        }
+
+        /* Konuşma Balonu (Diyalog) */
+        .speech-bubble {
+            position: relative;
+            background: var(--balon-bg);
+            border: 4px solid var(--cerceve-rengi);
+            border-radius: 25px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(255, 77, 109, 0.1);
+            width: 85%;
+            margin-bottom: 25px;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* Balon Oku */
+        .speech-bubble::after {
+            content: '';
+            position: absolute;
+            top: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 0 15px 15px;
+            border-style: solid;
+            border-color: var(--cerceve-rengi) transparent;
+        }
+
+        .speech-bubble::before {
+            content: '';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 0 13px 13px;
+            border-style: solid;
+            border-color: white transparent;
+            z-index: 1;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        #messageText {
+            color: #d63384;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        /* Butonlar */
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
+            min-height: 100px;
+        }
+
+        .btn {
+            padding: 14px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        #acceptBtn {
+            background: var(--ana-pembe);
+            color: white;
+            z-index: 1000;
+        }
+
+        #declineBtn {
+            background: #ffffff;
+            color: #777;
+            border: 2px solid #eee;
+        }
+
+        /* Başarı Ekranı */
+        #successScreen {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: white;
+            z-index: 9999;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="heartBg"></div>
+
+    <div id="successScreen">
+        <div style="font-size: 100px; animation: kalpAtis 0.8s infinite;">💖</div>
+        <h1 id="finalTitle" style="color: var(--ana-pembe); font-size: 2.5rem; margin-top: 20px;"></h1>
+        <p id="finalMsg" style="font-size: 1.3rem; color: #555;"></p>
+    </div>
+
+    <div class="main-stage">
+        <div class="character-box">
+            <img src="karakter.png" alt="Karakter">
+        </div>
+
+        <div class="speech-bubble">
+            <p id="messageText"></p>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn" id="acceptBtn" onclick="celebrate()">Evet ❤️</button>
+            <button class="btn" id="declineBtn" onclick="handleDecline()">Hayır</button>
+        </div>
+    </div>
+
+    <script>
+        const isim = "Esra"; 
+
+        const mesajlar = [
+            `Beni affeder misin ${isim}? valla çok pişmanım... 🥺`,
+            `Hadi ama ${isim}, kıyamazsın bana... 🥺`,
+            `Bak senin için site bile kodladım, affet artık? 🙏`,
+            `Hala mı hayır? Kalbim çıt ediyor şu an... 💔`,
+            `Peki... Sen bilirsin... (Şaka şaka, yakalayamazsın!) 😜`
+        ];
+
+        let redSayaci = 0;
+        const declineBtn = document.getElementById('declineBtn');
+        const acceptBtn = document.getElementById('acceptBtn');
+        const messageText = document.getElementById('messageText');
+        
+        messageText.innerText = mesajlar[0];
+
+        // Arka plan kalp yağmuru
+        function createHeart() {
+            const heart = document.createElement('div');
+            heart.className = 'floating-heart';
+            heart.innerText = '❤️';
+            heart.style.left = Math.random() * 100 + 'vw';
+            heart.style.animationDuration = (Math.random() * 2 + 3) + 's';
+            document.getElementById('heartBg').appendChild(heart);
+            setTimeout(() => heart.remove(), 5000);
+        }
+        setInterval(createHeart, 500);
+
+        function handleDecline() {
+            redSayaci++;
+            
+            if (redSayaci < mesajlar.length) {
+                messageText.innerText = mesajlar[redSayaci];
+            }
+
+            // "Evet" butonu her hayırda büyür
+            const size = 1 + (redSayaci * 0.2);
+            acceptBtn.style.transform = `scale(${size})`;
+            
+            // 3. denemeden sonra buton kaçar
+            if (redSayaci >= 3) {
+                moveButton();
+            }
+        }
+
+        function moveButton() {
+            declineBtn.style.position = 'fixed';
+            const x = Math.random() * (window.innerWidth - declineBtn.offsetWidth - 50) + 25;
+            const y = Math.random() * (window.innerHeight - declineBtn.offsetHeight - 50) + 25;
+            declineBtn.style.left = x + 'px';
+            declineBtn.style.top = y + 'px';
+        }
+
+        declineBtn.addEventListener('mouseover', () => { if(redSayaci >= 3) moveButton(); });
+        declineBtn.addEventListener('touchstart', (e) => { 
+            if(redSayaci >= 3) { e.preventDefault(); moveButton(); } 
+        });
+
+        function celebrate() {
+            document.getElementById('finalTitle').innerText = "OLEY! 🎉";
+            document.getElementById('finalMsg').innerText = `Seni çok seviyorum ${isim}, teşekkür ederim! ❤️`;
+            document.getElementById('successScreen').style.display = 'flex';
+        }
+    </script>
+
+    <style>
+        @keyframes kalpAtis {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+    </style>
+</body>
+</html>
